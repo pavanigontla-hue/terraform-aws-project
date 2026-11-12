@@ -38,8 +38,19 @@ pipeline {
 
         stage('Terraform Initialize') {
             steps {
-                echo 'Initializing Terraform'
-                bat 'terraform init -backend=false -input=false'
+                echo 'Initializing Terraform with S3 remote backend'
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-terraform-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    withEnv(['AWS_DEFAULT_REGION=ap-south-1']) {
+                        bat 'terraform init -reconfigure -input=false'
+                    }
+                }
             }
         }
 
