@@ -60,6 +60,24 @@ pipeline {
                 bat 'terraform validate'
             }
         }
+
+        stage('Terraform Plan') {
+            steps {
+                echo 'Previewing AWS infrastructure changes'
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-terraform-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    withEnv(['AWS_DEFAULT_REGION=ap-south-1']) {
+                        bat 'terraform plan -input=false -no-color'
+                    }
+                }
+            }
+        }
     }
 
     post {
