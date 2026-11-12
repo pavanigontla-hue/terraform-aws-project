@@ -10,24 +10,24 @@ pipeline {
                 bat 'terraform -version'
             }
         }
-        
-stage('Verify AWS Connection') {
-    steps {
-        echo 'Verifying AWS credentials'
 
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'aws-terraform-credentials',
-                usernameVariable: 'AWS_ACCESS_KEY_ID',
-                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-            )
-        ]) {
-            withEnv(['AWS_DEFAULT_REGION=ap-south-1']) {
-                bat 'aws sts get-caller-identity'
+        stage('Verify AWS Connection') {
+            steps {
+                echo 'Verifying AWS credentials'
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-terraform-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    withEnv(['AWS_DEFAULT_REGION=ap-south-1']) {
+                        bat 'aws sts get-caller-identity'
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Terraform Format Check') {
             steps {
@@ -38,7 +38,7 @@ stage('Verify AWS Connection') {
 
         stage('Terraform Initialize') {
             steps {
-                echo 'Initializing Terraform without configuring remote backend'
+                echo 'Initializing Terraform'
                 bat 'terraform init -backend=false -input=false'
             }
         }
@@ -53,7 +53,7 @@ stage('Verify AWS Connection') {
 
     post {
         success {
-            echo 'SUCCESS: Terraform validation completed!'
+            echo 'SUCCESS: AWS and Terraform verification completed!'
         }
 
         failure {
